@@ -10,14 +10,18 @@
             </div>
         </div>
         <table id="inputTable">
-            <tr><td class="w20">title：</td><td class="w70"><input id="setDescription" type="text" v-model="inputTitle"></td></tr>
-            <tr><td class="w20">詳細：</td><td class="w70"><input id="setAttachedUrl" type="text" v-model="inputDescription"></td></tr>
+            <tr><td class="w20">タイトル：</td><td class="w70"><input id="setTitle" type="text" v-model="inputTitle"></td></tr>
+            <tr><td class="w20">詳細：</td><td class="w70"><input id="setDescription" type="text" v-model="inputDescription"></td></tr>
+            <tr><td class="w20">色：</td><td class="w70"><input id="setColor" type="color" v-model="inputColor"></td></tr>
         </table>
         <div id="setButton">
             <button id="addButton" v-on:click="addTask">追加</button>
         </div>
     </div>
     <div id="scheduler_main">
+        <div class="stime"><p>0:00a.m.</p></div>
+        <div class="stime"><p>1:00a.m.</p></div>
+        <div class="stime"><p>2:00a.m.</p></div>
         <div class="stime"><p>3:00a.m.</p></div>
         <div class="stime"><p>4:00a.m.</p></div>
         <div class="stime"><p>5:00a.m.</p></div>
@@ -40,12 +44,8 @@
         <div class="stime"><p>10:00p.m.</p></div>
         <div class="stime"><p>11:00p.m.</p></div>
         <div class="stime"><p>12:00p.m.</p></div>
-        <div class="stime"><p>0:00a.m.</p></div>
-        <div class="stime"><p>1:00a.m.</p></div>
-        <div class="stime"><p>2:00a.m.</p></div>
-        <div class="stime"><p>3:00a.m.</p></div>
         <div id="scheduler_tasks">
-            <Task v-for="(task,index) in scheduler_tasks" :key="index" :taskData="task" :positionData="taskPosition(task)" />
+            <Task v-for="(task,index) in scheduler_tasks" :key="index" :taskData="task" @deleteTask="deleteTask" />
         </div>
 
     </div>
@@ -61,61 +61,81 @@
                 scheduler_tasks: [
                     {
                         date: "yyyy-mm-dd",
-                        start: "3:10:00",
-                        end: "2:20:00",
+                        start: "3:10",
+                        end: "15:20",
                         title: "test",
                         description: "これはテストでしゅ1。",
+                        color: "#FFF9FF",
                     },
                     {
                         date: "yyyy-mm-dd",
-                        start: "15:00:00",
-                        end: "16:20:00",
+                        start: "15:00",
+                        end: "16:20",
                         title: "test2",
                         description: "これはテストでしゅ2。",
+                        color: "#FDFF5F",
                     },
                     {
                         date: "yyyy-mm-dd",
-                        start: "19:20:00",
-                        end: "20:20:00",
+                        start: "19:20",
+                        end: "20:20",
                         title: "test3",
                         description: "これはテストでしゅ3。",
+                        color: "#FFF6F6",
                     }
                 ],
                 inputStartTime: "",
                 inputEndTime: "",
                 inputTitle: "",
                 inputDescription: "",
+                inputColor: "",
+            }
+        },
+
+        created: function(){
+            for(var i=0; i<this.scheduler_tasks.length; i++){
+                this.scheduler_tasks[i].positionData = this.taskPosition(this.scheduler_tasks[i]);
             }
         },
 
         methods: {
             addTask: function () {
                 if(this.inputStartTime && this.inputEndTime && this.inputTitle){
+                    if(this.inputStartTime < this.inputEndTime)
                     this.scheduler_tasks.push({
-                    date: "yyyy-mm-dd",
-                    start: this.inputStartTime,
-                    end: this.inputEndTime,
-                    title: this.inputTitle,
-                    description: this.inputDescription,
-                });
+                        date: "yyyy-mm-dd",
+                        start: this.inputStartTime,
+                        end: this.inputEndTime,
+                        title: this.inputTitle,
+                        description: this.inputDescription,
+                        color: this.inputColor,
+                    });
                 }
-                
+
                 console.log(this.scheduler_tasks);
+            },
+            deleteTask: function(taskData){
+                console.log("delete");
+                for(var i=0; i<this.scheduler_tasks.length; i++){
+                    console.log("delete?");
+                    if(this.scheduler_tasks[i] == taskData){
+                        this.scheduler_tasks.splice(i,1);
+                        console.log(this.scheduler_tasks);
+                        return ;
+                    }
+                }
             },
             textToTime: function(datetext) {
                 var datetime = datetext.split(':');
                 return {
                     hour: Number(datetime[0]),
                     min: Number(datetime[1]),
-                    sec: Number(datetime[2]),
                 }
             },
             taskPosition: function(task) {
                 var start = this.textToTime(task.start);
                 var end = this.textToTime(task.end);
-                if(start.hour<3)start.hour+=25;
-                if(end.hour<3)end.hour+=25;
-                var top = (start.hour-2+start.min/60)*6;
+                var top = (start.hour+1+start.min/60)*6;
                 var height = ((end.hour-start.hour)+(end.min-start.min)/60)*6;
                 return {
                     top: top,
@@ -145,7 +165,6 @@
 
 #createTaskModal {
     width: 95%;
-    height: 18%;
     margin: auto;
     background-color: #FFFFFF;
     box-shadow: 1px 1px 2px;
@@ -161,11 +180,18 @@
 #createTaskModal #setEndTime {
     margin: auto;
 }
-#createTaskModal #setDescription {
+#createTaskModal #setTitle {
     width: 100%;
 }
-#createTaskModal #setAttachedUrl{
+#createTaskModal #setDescription{
     width: 100%;
+}
+#createTaskModal #setColor{
+    width: 100%;
+}
+
+#setColor li{
+    display:inline;
 }
 
 #createTaskModal table{
@@ -173,6 +199,7 @@
 }
 #createTaskModal .w20 {
     width: 20%;
+    text-align: right;
 }
 #createTaskModal .w70 {
     width: 70%;
@@ -190,7 +217,7 @@
 #scheduler_main {
     position: relative;
     width: 100%;
-    height: 85%;
+    height: 75%;
     margin-top: 1%;
     overflow: auto;
 }
